@@ -79,6 +79,7 @@ pub use pallet::*;
 pub mod pallet {
     use super::*;
     use frame_support::pallet_prelude::*;
+    use frame_support::traits::tokens::AssetId;
     use frame_system::pallet_prelude::OriginFor;
 
     #[pallet::pallet]
@@ -221,6 +222,21 @@ pub mod pallet {
                 fallback_account: None,
                 account_currencies: vec![],
             }
+        }
+    }
+
+    pub struct NoSpotPriceProvider {
+    }
+
+    impl<T: AssetId> SpotPriceProvider<T> for NoSpotPriceProvider {
+        type Price = Price;
+
+        fn pair_exists(_asset_a: T, _asset_b: T) -> bool {
+            false
+        }
+
+        fn spot_price(_asset_a: T, _asset_b: T) -> Option<Self::Price> {
+            None
         }
     }
 
