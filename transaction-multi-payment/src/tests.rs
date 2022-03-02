@@ -21,7 +21,7 @@ use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::SignedExtension;
 
 use crate::traits::{CurrencyWithdraw, PaymentWithdrawResult};
-use crate::CurrencyBalanceCheck;
+use crate::{CurrencyBalanceCheck, NoSpotPriceProvider};
 use crate::Price;
 use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
 use frame_support::weights::DispatchInfo;
@@ -29,6 +29,7 @@ use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use sp_runtime::traits::BadOrigin;
 use sp_std::marker::PhantomData;
+use hydradx_traits::pools::SpotPriceProvider;
 
 const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer { dest: 2, value: 69 });
 
@@ -481,6 +482,11 @@ fn check_balance_should_work() {
             1_u8
         );
     });
+}
+
+#[test]
+fn check_no_spot_price() {
+    assert_eq!(NoSpotPriceProvider::spot_price(1i32, 2i32), None);
 }
 
 #[test]
