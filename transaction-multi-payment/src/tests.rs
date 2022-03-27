@@ -24,6 +24,7 @@ use crate::traits::{CurrencyWithdraw, PaymentWithdrawResult};
 use crate::CurrencyBalanceCheck;
 use crate::Price;
 use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
+use frame_support::traits::{OnFinalize, OnInitialize};
 use frame_support::weights::DispatchInfo;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
@@ -512,5 +513,36 @@ fn withdraw_should_not_work() {
             PaymentPallet::withdraw(&ALICE, 1000),
             Error::<Test>::FallbackPriceNotFound
         );
+    });
+}
+
+#[test]
+fn currencies_should_init_finalize() {
+    const CURR_1: AssetId = 1;
+    const CURR_2: AssetId = 2;
+    const CURR_3: AssetId = 3;
+    const CURR_4: AssetId = 4;
+
+    ExtBuilder::default().base_weight(5)
+        .build().execute_with(|| {
+        let currencies = vec![CURR_1, CURR_2, CURR_3, CURR_4];
+
+        for i in 1..5 {
+            assert_ok!(PaymentPallet::add_currency(Origin::root(), currencies[i-1], Price::from_float(30.0 + (i as f64))));
+        }
+
+        <PaymentPallet as OnInitialize<u64>>::on_initialize(5);
+
+        assert_eq!(PaymentPallet::currency_price(CURR_1), Some(Price::from(31)));
+        assert_eq!(PaymentPallet::currency_price(CURR_2), Some(Price::from(32)));
+        assert_eq!(PaymentPallet::currency_price(CURR_3), Some(Price::from(33)));
+        assert_eq!(PaymentPallet::currency_price(CURR_4), Some(Price::from(34)));
+
+        <PaymentPallet as OnFinalize<u64>>::on_finalize(5);
+
+        assert_eq!(PaymentPallet::currency_price(CURR_1), None);
+        assert_eq!(PaymentPallet::currency_price(CURR_2), None);
+        assert_eq!(PaymentPallet::currency_price(CURR_3), None);
+        assert_eq!(PaymentPallet::currency_price(CURR_4), None);
     });
 }
