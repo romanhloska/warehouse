@@ -132,6 +132,20 @@ pub trait Resolver<AccountId, Intention, E> {
     fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[&Intention]);
 }
 
+pub trait RegistryInspect<AssetId, Balance> {
+    fn exists(name: AssetId) -> bool;
+
+    fn existential_deposit(name: AssetId) -> Result<AssetId, Balance>;
+}
+
+pub trait RegistryRetrieve<AssetId, AssetName, Error> {
+    fn retrieve_asset(name: &AssetName) -> Result<AssetId, Error>;
+}
+
+pub trait RegistryCreate<AssetId, AssetName, Balance, Error> {
+    fn create_asset(name: &AssetName, existential_deposit: Balance) -> Result<AssetId, Error>;
+}
+
 pub trait Registry<AssetId, AssetName, Balance, Error> {
     fn exists(name: AssetId) -> bool;
 
